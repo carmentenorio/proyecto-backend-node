@@ -1,0 +1,34 @@
+const bcrypt = require('bcryptjs');
+const { pool } = require('../../db/connection');
+const { nextUlid } = require('../../utils/ids');
+exports.register = async (req, res) => {
+    try {
+        const { name, email, password } = req.body || {};
+        
+        if (!name || !email || !password) {
+            console.log(name);
+            
+            return res.status(422).json({ message: 'name, email y password son obligatorios' });
+        }
+        const [exists] = await pool.execute(
+            'SELECT id FROM users WHERE email = ? LIMIT 1',
+            [email]
+        );
+        if (exists.length) {
+            return res.status(422).json({ message: 'El email ya está registrado' });
+        }
+        const id = nextUlid(); 
+
+        const hash = await bcrypt.hash(password, 10);
+
+        await pool.execute(
+            'INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)',
+            [id, name, email, hash]
+        );
+        return res.status(201).json({ id, name, email });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(400).json({ message: 'Error al registrar usuario' });
+    }
+}
