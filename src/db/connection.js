@@ -13,11 +13,4 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-async function testConnection(){
-    const [rows] = await pool.query('SELECT 1 AS result');
-    console.log(rows);
-}
-console.log("test");
-testConnection().catch(console.error);
-
-module.exports = { pool};
+module.exports = { pool };
