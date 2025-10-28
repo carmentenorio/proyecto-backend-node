@@ -12,5 +12,11 @@ const pool = mysql.createPool({
   connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
   queueLimit: 0
 });
+async function testConnection(){
+    const [rows] = await pool.query('SELECT 1 AS result');
+    console.log(rows);
+}
+console.log("test");
+testConnection().catch(console.error);
 
-module.exports = { pool };
+module.exports = { pool};
