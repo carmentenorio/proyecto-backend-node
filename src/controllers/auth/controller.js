@@ -8,14 +8,14 @@ exports.register = async (req, res) => {
         if (!name || !email || !password) {
             console.log(name);
             
-            return res.status(422).json({ message: 'name, email y password son obligatorios' });
+            return res.status(422).json({ message: 'Name, email and password are required' });
         }
         const [exists] = await pool.execute(
             'SELECT id FROM users WHERE email = ? LIMIT 1',
             [email]
         );
         if (exists.length) {
-            return res.status(422).json({ message: 'El email ya está registrado' });
+            return res.status(422).json({ message: 'The email is already registered' });
         }
         const id = nextUlid(); 
 
@@ -29,6 +29,6 @@ exports.register = async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        return res.status(400).json({ message: 'Error al registrar usuario' });
+        return res.status(400).json({ message: 'Error registering user' });
     }
 }
