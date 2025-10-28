@@ -9,9 +9,9 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Servidor funcionando correctamente' });
+  res.json({ message: 'Server working correctly' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor iniciado en el puerto ${PORT}`);
+  console.log(`Server started on port ${PORT}`);
 });
