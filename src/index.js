@@ -14,7 +14,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Server working correctly'});
+  res.json({ message: 'Server working correctly' });
 });
 
 app.listen(PORT, () => {

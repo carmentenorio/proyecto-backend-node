@@ -7,7 +7,6 @@ exports.getById = async (req, res) => {
     if (!rows.length) return res.status(404).json({ message: 'User not found' });
     return res.json(rows[0]);
   } catch (err) {
-    console.error('Error en getById:', err);
     return res.status(500).json({ message: 'Error getting user' });
   }
 };
