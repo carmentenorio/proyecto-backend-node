@@ -1,6 +1,6 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
 
 const authRoutes = require('./routes/auth/routes.js');
 const usersRoutes = require('./routes/user/routes.js');
@@ -20,5 +20,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
-
 
