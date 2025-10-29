@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "db:migrate": "node src/db/run_migrations.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
