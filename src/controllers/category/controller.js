@@ -68,11 +68,11 @@ exports.destroy = async (req, res) => {
             'SELECT * FROM categories WHERE id = ? LIMIT 1',
             [id]
         );
-        if (!rows.length) return res.status(200).json({ deleted: false });
+        if (!rows.length) return res.status(404).json({ message: 'Not found' });
         const deleted = rows[0];
         const [del] = await pool.execute('DELETE FROM categories WHERE id = ?', [id]);
-        if (del.affectedRows === 0) return res.status(204).send();
-        return res.status(200).json(decorateCategory(deleted));
+        
+        return res.status(201).json(decorateCategory(deleted));
         
     } catch (err) {
         return res.status(500).json({ message: 'Delete error', err });
