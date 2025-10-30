@@ -71,7 +71,6 @@ exports.destroy = async (req, res) => {
         if (!rows.length) return res.status(404).json({ message: 'Not found' });
         const deleted = rows[0];
         const [del] = await pool.execute('DELETE FROM tags WHERE id = ?', [id]);
-        
         return res.status(201).json({data:decorateTag(deleted)});
         
     } catch (err) {
