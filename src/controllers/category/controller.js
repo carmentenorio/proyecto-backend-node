@@ -71,8 +71,9 @@ exports.destroy = async (req, res) => {
         if (!rows.length) return res.status(200).json({ deleted: false });
         const deleted = rows[0];
         const [del] = await pool.execute('DELETE FROM categories WHERE id = ?', [id]);
-        if (del.affectedRows > 0) return res.status(200).json(decorateCategory ? decorateCategory(deleted) : deleted);
-        return res.status(204).send();
+        if (del.affectedRows === 0) return res.status(204).send();
+        return res.status(200).json(decorateCategory(deleted));
+        
     } catch (err) {
         return res.status(500).json({ message: 'Delete error', err });
     }
