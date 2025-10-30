@@ -44,14 +44,18 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body || {};
-        const [rows] = await pool.execute('SELECT * FROM categories WHERE id = ?', [id]);
-        if (!rows.length) return res.status(404).json({ message: 'Not found' });
         if (!name) return res.status(422).json({ message: 'name required' });
 
-        const [upd] = await pool.execute('UPDATE categories SET name = ? WHERE id = ?', [name, id]);
-        if (upd.affectedRows === 0) return res.status(404).json({ message: 'Not found' });
+        const [rows] = await pool.execute('SELECT * FROM categories WHERE id = ?', [id]);
+        if (!rows.length) return res.status(404).json({ message: 'Not found' });
 
-        return res.status(201).json(decorateCategory(rows[0]));
+        await pool.execute(
+            'UPDATE categories SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [name, id]
+        );
+
+        const catg = { ...rows[0], name };
+        return res.status(200).json(decorateCategory(catg));
 
     } catch (error) {
         return res.status(500).json({ message: 'Error updating' });
