@@ -14,7 +14,7 @@ exports.create = async (req, res) => {
 
         const [rows] = await pool.execute(
             'SELECT * FROM categories WHERE id = ?', [id]);
-        return res.status(201).json(decorateCategory ? decorateCategory(rows[0]) : rows[0]);
+        return res.status(201).json(decorateCategory(rows[0]));
 
     } catch (error) {
         return res.status(500).json({ message: 'Error creating' });
@@ -44,14 +44,14 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body || {};
+        const [rows] = await pool.execute('SELECT * FROM categories WHERE id = ?', [id]);
+        if (!rows.length) return res.status(404).json({ message: 'Not found' });
         if (!name) return res.status(422).json({ message: 'name required' });
 
         const [upd] = await pool.execute('UPDATE categories SET name = ? WHERE id = ?', [name, id]);
         if (upd.affectedRows === 0) return res.status(404).json({ message: 'Not found' });
 
-        const [rows] = await pool.execute(
-            'SELECT * FROM categories WHERE id = ?', [id]);
-        return res.status(201).json(decorateCategory ? decorateCategory(rows[0]) : rows[0]);
+        return res.status(201).json(decorateCategory(rows[0]));
 
     } catch (error) {
         return res.status(500).json({ message: 'Error updating' });
@@ -60,12 +60,16 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
-        const [del] = await pool.execute(
-            'DELETE FROM categories WHERE id = ?', [id]);
-        if (del.affectedRows === 0) return res.status(404).json({ message: 'Not found' });
+        const [rows] = await pool.execute(
+            'SELECT * FROM categories WHERE id = ? LIMIT 1',
+            [id]
+        );
+        if (!rows.length) return res.status(200).json({ deleted: false });
+        const deleted = rows[0];
+        const [del] = await pool.execute('DELETE FROM categories WHERE id = ?', [id]);
+        if (del.affectedRows > 0) return res.status(200).json(decorateCategory ? decorateCategory(deleted) : deleted);
         return res.status(204).send();
-    } catch (error) {
+    } catch (_e) {
         return res.status(500).json({ message: 'Delete error' });
     }
-}
-
+};
