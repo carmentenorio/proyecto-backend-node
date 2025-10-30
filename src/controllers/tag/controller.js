@@ -15,7 +15,6 @@ exports.create = async (req, res) => {
         const [rows] = await pool.execute(
             'SELECT * FROM tags WHERE id = ?', [id]);
         return res.status(201).json({data:decorateTag(rows[0])});
-
     } catch (error) {
         return res.status(500).json({ message: 'Error creating' });
     }
@@ -56,7 +55,6 @@ exports.update = async (req, res) => {
 
         const tag = { ...rows[0], name };
         return res.status(200).json({data:decorateTag(tag)});
-
     } catch (error) {
         return res.status(500).json({ message: 'Error updating', err });
     }
