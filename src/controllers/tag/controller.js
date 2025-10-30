@@ -15,7 +15,6 @@ exports.create = async (req, res) => {
         const [rows] = await pool.execute(
             'SELECT * FROM tags WHERE id = ?', [id]);
         return res.status(201).json({data:decorateTag(rows[0])});
-
     } catch (error) {
         return res.status(500).json({ message: 'Error creating' });
     }
@@ -35,6 +34,7 @@ exports.show = async (req, res) => {
         const { id } = req.params;
         const [rows] = await pool.execute('SELECT * FROM tags WHERE id = ?', [id]);
         if (!rows.length) return res.status(404).json({ message: 'Not found' });
+
         return res.json({data:decorateTag(rows[0])});
     } catch (error) {
         return res.status(500).json({ message: 'Error listing a tag' });
@@ -55,8 +55,8 @@ exports.update = async (req, res) => {
         );
 
         const tag = { ...rows[0], name };
-        return res.status(200).json({data:decorateTag(tag)});
 
+        return res.status(200).json({data:decorateTag(tag)});
     } catch (error) {
         return res.status(500).json({ message: 'Error updating', err });
     }
@@ -73,7 +73,6 @@ exports.destroy = async (req, res) => {
         const [del] = await pool.execute('DELETE FROM tags WHERE id = ?', [id]);
         
         return res.status(201).json({data:decorateTag(deleted)});
-        
     } catch (err) {
         return res.status(500).json({ message: 'Delete error', err });
     }

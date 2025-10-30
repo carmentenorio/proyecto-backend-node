@@ -6,7 +6,10 @@ const authRoutes = require('./routes/auth/routes.js');
 const usersRoutes = require('./routes/user/routes.js');
 const categoriesRoutes = require('./routes/category/routes.js');
 const tagsRoutes = require('./routes/tag/routes.js');
+<<<<<<< HEAD
 const tasksRoutes = require('./routes/task/routes.js');
+=======
+>>>>>>> 187e6a6 (PBN-5: tags Module (Native SQL))
 const app = express();
 const PORT = process.env.PORT || 3000;
 
