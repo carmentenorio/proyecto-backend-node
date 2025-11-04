@@ -1,6 +1,3 @@
-const { decorateCategory } = require('./category.decorator');
-const { decorateTag } = require('./tag.decorator');
-
 function decorateTask(row = {}) {
     return {
         id: row.id,
