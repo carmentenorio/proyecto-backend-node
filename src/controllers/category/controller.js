@@ -5,12 +5,13 @@ const { decorateCategory, decorateList } = require('../../decorators/category.de
 
 exports.create = async (req, res) => {
     try {
-        const { name, user_id } = req.body || {};
-        if (!name || !user_id) {
+        const { name } = req.body || {};
+        const userId = req.user.sub;
+        if (!name) {
             return res.status(422).json({ message: 'Name and user_id are required' });
         }
         const id = nextUlid();
-        await pool.execute('INSERT INTO categories (id, name, user_id) VALUES (?, ?, ?)', [id, name, user_id]);
+        await pool.execute('INSERT INTO categories (id, name, user_id) VALUES (?, ?, ?)', [id, name, userId]);
 
         const [rows] = await pool.execute(
             'SELECT * FROM categories WHERE id = ?', [id]);
@@ -22,6 +23,8 @@ exports.create = async (req, res) => {
 }
 exports.list = async (req, res) => {
     try {
+        const userId = req.user.sub;
+
         const [rows] = await pool.execute(
             'SELECT * FROM categories ORDER BY created_at DESC');
         return res.json({data:decorateList(rows)});
@@ -44,14 +47,16 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body || {};
+        const userId = req.user.sub;
+
         if (!name) return res.status(422).json({ message: 'name required' });
 
         const [rows] = await pool.execute('SELECT * FROM categories WHERE id = ?', [id]);
         if (!rows.length) return res.status(404).json({ message: 'Not found' });
 
         await pool.execute(
-            'UPDATE categories SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [name, id]
+            'UPDATE categories SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+            [name, id, userId]
         );
 
         const catg = { ...rows[0], name };
@@ -64,11 +69,13 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.sub;
+
         const [rows] = await pool.execute(
-            'SELECT * FROM categories WHERE id = ? LIMIT 1',
-            [id]
+            'SELECT * FROM categories WHERE id = ? AND user_id = ? LIMIT 1',
+            [id, userId]
         );
-        if (!rows.length) return res.status(404).json({ message: 'Not found' });
+        if (!rows.length) return res.status(404).json({ message: 'Not found or not owned by user' });
         const deleted = rows[0];
         const [del] = await pool.execute('DELETE FROM categories WHERE id = ?', [id]);
         
