@@ -1,5 +1,7 @@
-function decorateTask(row = {}) {
-    return {
+const { decorateTag } = require('./tag.decorator');
+
+const decorateTask = (row = {}) => {
+    const data = {
         id: row.id,
         title: row.title,
         description: row.description,
@@ -16,6 +18,7 @@ function decorateTask(row = {}) {
         created_at: row.created_at,
         updated_at: row.updated_at,
     };
+    return data;
 }
 
 function decorateList(rows = []) {

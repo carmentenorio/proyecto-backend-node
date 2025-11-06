@@ -8,7 +8,7 @@ exports.create = async (req, res) => {
         const { name } = req.body || {};
         const userId = req.user.sub;
         if (!name) {
-            return res.status(422).json({ message: 'Name and user_id are required' });
+            return res.status(422).json({ message: 'Name are required' });
         }
         const id = nextUlid();
         await pool.execute('INSERT INTO tags (id, name, user_id) VALUES (?, ?, ?)', [id, name, userId]);
@@ -20,6 +20,7 @@ exports.create = async (req, res) => {
         return res.status(500).json({ message: 'Error creating' });
     }
 }
+
 exports.list = async (req, res) => {
     try {
         const userId = req.user.sub;
@@ -69,6 +70,7 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.sub;
         const [rows] = await pool.execute(
             'SELECT * FROM tags WHERE id = ? AND user_id = ? LIMIT 1',
             [id, userId]

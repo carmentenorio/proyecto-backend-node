@@ -26,12 +26,20 @@ exports.create = async (req, res) => {
                 );
             }
         }
+        console.log(tag_ids);
 
         const [tasks] = await pool.execute(
             `SELECT id, title, description, status, category_id, user_id
        FROM tasks WHERE id = ?`,
             [id]
         );
+        const [taskTags] = await pool.execute(
+            `SELECT tags.id AS tag_id, tags.name AS tag_name
+            FROM task_tags
+            LEFT JOIN tags ON tags.id = task_tags.tag_id
+            WHERE task_tags.task_id = ?`, [id]
+        );
+        console.log([taskTags]);
 
         if (tasks.length === 0) {
             return res.status(404).json({ message: 'Task not found after insert' });
@@ -147,6 +155,7 @@ exports.list = async (req, res) => {
     }
 };
 
+
 exports.show = async (req, res) => {
     try {
         const { id } = req.params;
@@ -232,7 +241,7 @@ exports.update = async (req, res) => {
             ]
         );
 
-        if (Array.isArray(tag_ids)) {
+        if (tags) {
             await pool.execute('DELETE FROM task_tags WHERE task_id = ?', [id]);
 
             for (const tag of tag_ids) {
@@ -245,10 +254,10 @@ exports.update = async (req, res) => {
         }
 
         const [updatedRows] = await pool.execute(
-            `SELECT t.*, c.name AS category_name
-             FROM tasks t
-             LEFT JOIN categories c ON c.id = t.category_id
-             WHERE t.id = ?`,
+            `SELECT tasks.*, categories.name AS category_name
+             FROM tasks
+             LEFT JOIN categories ON categories.id = tasks.category_id
+             WHERE tasks.id = ?`,
             [id]
         );
         const updatedTask = updatedRows[0];
@@ -277,6 +286,7 @@ exports.update = async (req, res) => {
         return res.json({ data: decoratedTask });
 
     } catch (error) {
+        console.error(error);
         return res.status(500).json({ message: 'Error updating task', error });
     }
 };
