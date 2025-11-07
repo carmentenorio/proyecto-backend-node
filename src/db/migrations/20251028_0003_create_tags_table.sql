@@ -1,10 +1,10 @@
 CREATE TABLE
     IF NOT EXISTS tags (
         id CHAR(26) COLLATE ascii_bin NOT NULL,
-        name VARCHAR(120) NOT NULL,
+        name VARCHAR(120),
         user_id CHAR(26) COLLATE ascii_bin NOT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         UNIQUE KEY uniq_user_tag (user_id, name),
         KEY idx_tags_user (user_id),

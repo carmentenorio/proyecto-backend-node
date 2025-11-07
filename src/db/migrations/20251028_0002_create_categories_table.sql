@@ -1,4 +1,3 @@
-
 CREATE TABLE
     IF NOT EXISTS categories (
         id CHAR(26) COLLATE ascii_bin NOT NULL,

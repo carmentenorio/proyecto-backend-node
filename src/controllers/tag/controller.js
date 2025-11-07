@@ -55,7 +55,7 @@ exports.update = async (req, res) => {
         );
 
         const tag = { ...rows[0], name };
-        return res.status(200).json(decorateTag(tag));
+        return res.status(200).json({data:decorateTag(tag)});
 
     } catch (error) {
         return res.status(500).json({ message: 'Error updating', err });
