@@ -26,7 +26,6 @@ exports.create = async (req, res) => {
                 );
             }
         }
-        console.log(tag_ids);
 
         const [tasks] = await pool.execute(
             `SELECT id, title, description, status, category_id, user_id
@@ -39,7 +38,6 @@ exports.create = async (req, res) => {
             LEFT JOIN tags ON tags.id = task_tags.tag_id
             WHERE task_tags.task_id = ?`, [id]
         );
-        console.log([taskTags]);
 
         if (tasks.length === 0) {
             return res.status(404).json({ message: 'Task not found after insert' });
@@ -286,7 +284,6 @@ exports.update = async (req, res) => {
         return res.json({ data: decoratedTask });
 
     } catch (error) {
-        console.error(error);
         return res.status(500).json({ message: 'Error updating task', error });
     }
 };
