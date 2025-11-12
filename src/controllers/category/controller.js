@@ -14,7 +14,7 @@ exports.create = async (req, res) => {
 
         const [rows] = await pool.execute(
             'SELECT * FROM categories WHERE id = ?', [id]);
-        return res.status(201).json(decorateCategory(rows[0]));
+        return res.status(201).json({data:decorateCategory(rows[0])});
 
     } catch (error) {
         return res.status(500).json({ message: 'Error creating' });
@@ -24,7 +24,7 @@ exports.list = async (req, res) => {
     try {
         const [rows] = await pool.execute(
             'SELECT * FROM categories ORDER BY created_at DESC');
-        return res.json(decorateList(rows));
+        return res.json({data:decorateList(rows)});
     } catch (error) {
         return res.status(500).json({ message: 'Listing error' });
     }
@@ -35,7 +35,7 @@ exports.show = async (req, res) => {
         const { id } = req.params;
         const [rows] = await pool.execute('SELECT * FROM categories WHERE id = ?', [id]);
         if (!rows.length) return res.status(404).json({ message: 'Not found' });
-        return res.json(decorateCategory(rows[0]));
+        return res.json({data:decorateCategory(rows[0])});
     } catch (error) {
         return res.status(500).json({ message: 'Error listing a category' });
     }
@@ -55,7 +55,7 @@ exports.update = async (req, res) => {
         );
 
         const catg = { ...rows[0], name };
-        return res.status(200).json(decorateCategory(catg));
+        return res.status(200).json({data:decorateCategory(catg)});
 
     } catch (error) {
         return res.status(500).json({ message: 'Error updating', err });
@@ -72,7 +72,7 @@ exports.destroy = async (req, res) => {
         const deleted = rows[0];
         const [del] = await pool.execute('DELETE FROM categories WHERE id = ?', [id]);
         
-        return res.status(201).json(decorateCategory(deleted));
+        return res.status(201).json({data:decorateCategory(deleted)});
         
     } catch (err) {
         return res.status(500).json({ message: 'Delete error', err });

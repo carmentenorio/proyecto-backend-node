@@ -4,10 +4,10 @@ function decorateTask(row = {}) {
         id: row.id,
         title: row.title,
         description: row.description,
-        status: row.status,
         user_id: row.user_id,
         category_id: row.category_id,
-        category_name: row.category_name || null,
+        category: row.category,
+        completed: row.status,
         tags: Array.isArray(row.tags) && row.tags.length > 0
             ? row.tags.map(decorateTag)
             : [],

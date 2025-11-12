@@ -3,7 +3,7 @@ CREATE TABLE
         id CHAR(26) COLLATE ascii_bin NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT,
-        status ENUM ('pending', 'completed') DEFAULT 'pending',
+        status TINYINT(1) DEFAULT 0,
         user_id CHAR(26) COLLATE ascii_bin NOT NULL,
         category_id CHAR(26) COLLATE ascii_bin,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
