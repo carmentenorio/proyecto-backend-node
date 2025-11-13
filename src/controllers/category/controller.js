@@ -6,7 +6,7 @@ const { decorateCategory, decorateList } = require('../../decorators/category.de
 exports.create = async (req, res) => {
     try {
         const { name } = req.body || {};
-        const userId = req.user.sub;
+        const userId = req.user.id;
         if (!name) {
             return res.status(422).json({ message: 'Name and user_id are required' });
         }
@@ -23,7 +23,7 @@ exports.create = async (req, res) => {
 }
 exports.list = async (req, res) => {
     try {
-        const userId = req.user.sub;
+        const userId = req.user.id;
 
         const [rows] = await pool.execute(
             'SELECT * FROM categories ORDER BY created_at DESC');
@@ -43,11 +43,12 @@ exports.show = async (req, res) => {
         return res.status(500).json({ message: 'Error listing a category' });
     }
 }
+
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body || {};
-        const userId = req.user.sub;
+        const userId = req.user.id;
 
         if (!name) return res.status(422).json({ message: 'name required' });
 
@@ -69,7 +70,7 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.user.sub;
+        const userId = req.user.id;
 
         const [rows] = await pool.execute(
             'SELECT * FROM categories WHERE id = ? AND user_id = ? LIMIT 1',

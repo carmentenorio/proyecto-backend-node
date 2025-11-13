@@ -6,7 +6,7 @@ const { decorateTask, decorateList } = require('../../decorators/task.decorator'
 exports.create = async (req, res) => {
     try {
         let { title, description, status, category_id, tag_ids, completed, tags } = req.body || {};
-        const userId = "01K9SQXKQ8EME4E2Y0PMB5TF87";
+        const userId = req.user.id;
 
         if (tags && !tag_ids) tag_ids = tags;
         if (!title) return res.status(422).json({ message: 'Title is required' });
@@ -29,14 +29,8 @@ exports.create = async (req, res) => {
 
         const [tasks] = await pool.execute(
             `SELECT id, title, description, status, category_id, user_id
-       FROM tasks WHERE id = ?`,
-            [id]
-        );
-        const [taskTags] = await pool.execute(
-            `SELECT tags.id AS tag_id, tags.name AS tag_name
-            FROM task_tags
-            LEFT JOIN tags ON tags.id = task_tags.tag_id
-            WHERE task_tags.task_id = ?`, [id]
+       FROM tasks WHERE id = ? AND user_id = ?`,
+            [id, userId]
         );
 
         if (tasks.length === 0) {
@@ -45,8 +39,8 @@ exports.create = async (req, res) => {
 
         const categoryIds = [...new Set(tasks.map(t => t.category_id))];
         const [categories] = await pool.execute(
-            `SELECT id, name FROM categories WHERE id IN (${categoryIds.map(() => '?').join(',')})`,
-            categoryIds
+            `SELECT id, name FROM categories WHERE id IN (${categoryIds.map((category) => category.id).join(',')}) AND user_id = ?`
+            ,[userId]
         );
 
         const taskIds = tasks.map(t => t.id);
@@ -86,7 +80,7 @@ exports.create = async (req, res) => {
 
 exports.list = async (req, res) => {
     try {
-        const userId = "01K9SQXKQ8EME4E2Y0PMB5TF87";
+        const userId = req.user.id;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const offset = (page - 1) * limit;
@@ -157,7 +151,7 @@ exports.list = async (req, res) => {
 exports.show = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = "01K9SQXKQ8EME4E2Y0PMB5TF87";
+        const userId = req.user.id;
 
         const [tasks] = await pool.execute(
             `SELECT id, title, description, status, category_id, user_id, created_at, updated_at
@@ -210,7 +204,7 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         let { title, description, status, completed, category_id, tags, tag_ids } = req.body || {};
-        const userId = "01K9SQXKQ8EME4E2Y0PMB5TF87";
+        const userId = req.user.id;
 
         if(completed !== undefined){
             status = completed;
@@ -291,7 +285,7 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = "01K9SQXKQ8EME4E2Y0PMB5TF87";
+        const userId = req.user.id;
 
         const [rows] = await pool.execute(
             'SELECT * FROM tasks WHERE id = ? AND user_id = ? LIMIT 1',

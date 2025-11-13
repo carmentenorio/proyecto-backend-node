@@ -1,5 +1,5 @@
 const { decorateTag } = require('./tag.decorator');
-
+const { decorateCategory } = require('./category.decorator');
 const decorateTask = (row = {}) => {
     const data = {
         id: row.id,

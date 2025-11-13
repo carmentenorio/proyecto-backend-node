@@ -1,12 +1,12 @@
 const { pool } = require('../../db/connection');
 const { monotonicFactory } = require('ulid');
 const nextUlid = monotonicFactory();
-const { decorateTag, decorateList } = require('../../decorators/tag.decorator');
+const { decorateTag, decorateListTags } = require('../../decorators/tag.decorator');
 
 exports.create = async (req, res) => {
     try {
         const { name } = req.body || {};
-        const userId = req.user.sub;
+        const userId = req.user.id;
         if (!name) {
             return res.status(422).json({ message: 'Name are required' });
         }
@@ -23,11 +23,12 @@ exports.create = async (req, res) => {
 
 exports.list = async (req, res) => {
     try {
-        const userId = req.user.sub;
+        const userId = req.user.id;
 
         const [rows] = await pool.execute(
-            'SELECT * FROM tags ORDER BY created_at DESC');
-        return res.json({data:decorateList(rows)});
+            'SELECT * FROM tags WHERE user_id = ? ORDER BY created_at DESC', [userId]
+        );
+        return res.json({data:decorateListTags(rows)});
     } catch (error) {
         return res.status(500).json({ message: 'Listing error' });
     }
@@ -36,7 +37,8 @@ exports.list = async (req, res) => {
 exports.show = async (req, res) => {
     try {
         const { id } = req.params;
-        const [rows] = await pool.execute('SELECT * FROM tags WHERE id = ?', [id]);
+        const userId = req.user.id;
+        const [rows] = await pool.execute('SELECT * FROM tags WHERE id = ? AND user_id = ? ', [id, userId]);
         if (!rows.length) return res.status(404).json({ message: 'Not found' });
 
         return res.json({data:decorateTag(rows[0])});
@@ -48,11 +50,11 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body || {};
-        const userId = req.user.sub;
+        const userId = req.user.id;
 
         if (!name) return res.status(422).json({ message: 'name required' });
 
-        const [rows] = await pool.execute('SELECT * FROM tags WHERE id = ?', [id]);
+        const [rows] = await pool.execute('SELECT * FROM tags WHERE id = ? AND user_id = ?', [id, userId]);
         if (!rows.length) return res.status(404).json({ message: 'Not found' });
 
         await pool.execute(
@@ -70,7 +72,7 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
     try {
         const { id } = req.params;
-        const userId = req.user.sub;
+        const userId = req.user.id;
         const [rows] = await pool.execute(
             'SELECT * FROM tags WHERE id = ? AND user_id = ? LIMIT 1',
             [id, userId]
