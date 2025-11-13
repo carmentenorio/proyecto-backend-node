@@ -1,10 +1,11 @@
 const express = require('express');
 const { create, list, show, update, destroy } = require('../../controllers/tag/controller');
+const { authGuard } = require('../../middlewires/auth.middleware');
 const router = express.Router();
 
-router.post('/', create);
-router.get('/', list);
-router.get('/:id', show);
-router.put('/:id', update);
-router.delete('/:id', destroy);
+router.post('/', authGuard, create);
+router.get('/', authGuard, list);
+router.get('/:id', authGuard, show);
+router.put('/:id', authGuard, update);
+router.delete('/:id', authGuard, destroy);
 module.exports = router;

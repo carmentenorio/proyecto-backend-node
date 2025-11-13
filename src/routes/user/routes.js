@@ -1,6 +1,9 @@
 const express = require('express');
-const { getById } = require('../../controllers/user/controller');
 const router = express.Router();
 
-router.get('/:id', getById);
+const { getById } = require('../../controllers/user/controller');
+const { authGuard } = require('../../middlewires/auth.middleware');
+
+router.get('/:id', authGuard, getById);
+
 module.exports = router;
