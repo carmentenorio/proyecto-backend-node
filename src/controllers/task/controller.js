@@ -8,14 +8,23 @@ exports.create = async (req, res) => {
         let { title, description, status, category_id, tag_ids, completed, tags } = req.body || {};
         const userId = req.user.id;
 
-        if (tags && !tag_ids) tag_ids = tags;
-        if (!title) return res.status(422).json({ message: 'Title is required' });
+        if (tags && !tag_ids) {
+            tag_ids = tags;
+        }
+
+        if (!title) {
+            return res.status(422).json({ message: 'Title is required' });
+        }
+
+        if (completed !== undefined && status === undefined) {
+            status = completed ? 1 : 0;
+        }
 
         const id = nextUlid();
 
         await pool.execute(
             'INSERT INTO tasks (id, title, description, status, user_id, category_id) VALUES (?, ?, ?, ?, ?, ?)',
-            [id, title, description || null, status, userId, category_id]
+            [id, title, description || null, status || 0, userId, category_id]
         );
 
         if (Array.isArray(tag_ids)) {
@@ -216,12 +225,13 @@ exports.update = async (req, res) => {
             'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
             [id, userId]
         );
-        if (!rows.length) return res.status(404).json({ message: 'Task not found' });
-
+        if (!rows.length) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
         const task = rows[0];
         await pool.execute(
             `UPDATE tasks
-             SET title = ?, description = ?, status = ?, category_id = ?, updated_at = CURRENT_TIMESTAMP
+             SET title = ?, description = ?, status = ?, category_id = ?
              WHERE id = ? AND user_id = ?`,
             [
                 title !== undefined ? title : task.title,
@@ -246,10 +256,7 @@ exports.update = async (req, res) => {
         }
 
         const [updatedRows] = await pool.execute(
-            `SELECT tasks.*, categories.name AS category_name
-             FROM tasks
-             LEFT JOIN categories ON categories.id = tasks.category_id
-             WHERE tasks.id = ?`,
+            'SELECT id, title, description, status, category_id, user_id, created_at, updated_at FROM tasks WHERE id = ?',
             [id]
         );
         const updatedTask = updatedRows[0];
