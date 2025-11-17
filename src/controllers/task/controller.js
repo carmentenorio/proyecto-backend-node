@@ -47,10 +47,23 @@ exports.create = async (req, res) => {
         }
 
         const categoryIds = [...new Set(tasks.map(t => t.category_id))];
-        const [categories] = await pool.execute(
-            `SELECT id, name FROM categories WHERE id IN (${categoryIds.map((category) => category.id).join(',')}) AND user_id = ?`
-            ,[userId]
-        );
+
+        let categories = [];
+        if (categoryIds.length > 0) {
+            const inClause = categoryIds
+                .map(catId => `'${catId}'`)
+                .join(',');
+
+            const [rows] = await pool.execute(
+                `SELECT id, name 
+                 FROM categories 
+                 WHERE id IN (${inClause}) 
+                 AND user_id = ?`,
+                [userId]
+            );
+
+            categories = rows;
+        }
 
         const taskIds = tasks.map(t => t.id);
         const [taskTagRelations] = await pool.execute(
@@ -72,7 +85,7 @@ exports.create = async (req, res) => {
         const category = categories.find(category => category.id === task.category_id) || null;
         const relatedTags = taskTagRelations
             .filter(tasks_tags => tasks_tags.task_id === task.id)
-            .map(tasks_tags => tagsData.find(tasks=> tasks.id === tasks_tags.tag_id))
+            .map(tasks_tags => tagsData.find(tasks => tasks.id === tasks_tags.tag_id))
             .filter(Boolean);
 
         const decoratedTask = decorateTask({
@@ -143,13 +156,15 @@ exports.list = async (req, res) => {
                 .filter(Boolean);
             return { ...task, category, tags: relatedTags };
         }));
-        
+
         return res.json({
-            data: tasksList,
-            current_page: page,
-            per_page: limit,
-            total,
-            last_page: Math.ceil(total / limit)
+            data: {
+                data: tasksList,
+                current_page: page,
+                per_page: limit,
+                total,
+                last_page: Math.ceil(total / limit)
+            }
         });
     } catch (error) {
         return res.status(500).json({ message: 'Error listing tasks', error });
@@ -215,10 +230,10 @@ exports.update = async (req, res) => {
         let { title, description, status, completed, category_id, tags, tag_ids } = req.body || {};
         const userId = req.user.id;
 
-        if(completed !== undefined){
-            status = completed;
+        if (completed !== undefined) {
+            status = completed ? 1 : 0;
         }
-        
+
         if (tags && !tag_ids) tag_ids = tags;
 
         const [rows] = await pool.execute(
@@ -228,7 +243,9 @@ exports.update = async (req, res) => {
         if (!rows.length) {
             return res.status(404).json({ message: 'Task not found' });
         }
+
         const task = rows[0];
+
         await pool.execute(
             `UPDATE tasks
              SET title = ?, description = ?, status = ?, category_id = ?
@@ -243,11 +260,11 @@ exports.update = async (req, res) => {
             ]
         );
 
-        if (tags) {
+        if (tag_ids) {
             await pool.execute('DELETE FROM task_tags WHERE task_id = ?', [id]);
 
             for (const tag of tag_ids) {
-                const tagId = (tag.id || tag).trim();
+                const tagId = (tag.id || tag).toString();
                 await pool.execute(
                     'INSERT INTO task_tags (task_id, tag_id) VALUES (?, ?)',
                     [id, tagId]
@@ -256,38 +273,58 @@ exports.update = async (req, res) => {
         }
 
         const [updatedRows] = await pool.execute(
-            'SELECT id, title, description, status, category_id, user_id, created_at, updated_at FROM tasks WHERE id = ?',
-            [id]
+            `SELECT id, title, description, status, category_id, user_id, created_at, updated_at 
+             FROM tasks 
+             WHERE id = ? AND user_id = ?`,
+            [id, userId]
         );
+
         const updatedTask = updatedRows[0];
 
-        const [taskTagRelations] = await pool.execute('SELECT tag_id FROM task_tags WHERE task_id = ?', [id]);
+        let category = null;
 
-        const tagIds = taskTagRelations.map(tt => tt.tag_id);
+        if (updatedTask.category_id) {
+            const [catRows] = await pool.execute(
+                'SELECT id, name FROM categories WHERE id = ? AND user_id = ?',
+                [updatedTask.category_id, userId]
+            );
+
+            if (catRows.length) {
+                category = catRows[0];
+            }
+        }
+        const [taskTagRelations] = await pool.execute(
+            'SELECT tag_id FROM task_tags WHERE task_id = ?',
+            [id]
+        );
+
+        const tagIDs = taskTagRelations.map(tt => tt.tag_id);
+
         let tagsData = [];
-        if (tagIds.length > 0) {
+
+        if (tagIDs.length > 0) {
+            const placeholders = tagIDs.map(() => '?').join(',');
             const [tagRows] = await pool.execute(
-                `SELECT id, name FROM tags WHERE id IN (${tagIds.map(() => '?').join(',')})`,
-                tagIds
+                `SELECT id, name FROM tags WHERE id IN (${placeholders})`,
+                tagIDs
             );
             tagsData = tagRows;
         }
-
         const decoratedTask = decorateTask({
             ...updatedTask,
-            category: updatedTask.category_name
-                ? { id: updatedTask.category_id, name: updatedTask.category_name }
-                : null,
+            category,
             tags: tagsData,
-            completed: !!updatedTask.status,
-            category_name: updatedTask.category_name || 'Uncategorized'
+            completed: !!updatedTask.status
         });
+
         return res.json({ data: decoratedTask });
 
     } catch (error) {
+        console.log(error);
         return res.status(500).json({ message: 'Error updating task', error });
     }
 };
+
 
 exports.destroy = async (req, res) => {
     try {
