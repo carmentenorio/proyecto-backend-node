@@ -320,7 +320,6 @@ exports.update = async (req, res) => {
         return res.json({ data: decoratedTask });
 
     } catch (error) {
-        console.log(error);
         return res.status(500).json({ message: 'Error updating task', error });
     }
 };
